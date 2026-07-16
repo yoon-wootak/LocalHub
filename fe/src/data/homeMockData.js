@@ -95,4 +95,4 @@ export const communityPosts = [
   }
 ]
 
-export const regionBannerImage = 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=1600&h=400&fit=crop'
+export const regionBannerImage = 'https://www.yeongnam.com/mnt/file/202203/2022032001000640600027361.jpg'
