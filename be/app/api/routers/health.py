@@ -7,6 +7,14 @@ from app.models.place import Place
 
 router = APIRouter()
 
+place = Place(
+    title="테스트 장소",
+    content_type="관광지",
+    addr1="테스트 주소",
+    latitude=36.1,
+    longitude=128.4,
+)
+
 @router.get("/api/places")
 def list_places(db: Session = Depends(get_db)):
     places = db.query(Place).limit(5).all()

@@ -1,6 +1,6 @@
 <template>
   <footer class="bg-[var(--color-primary)] text-white">
-    <div class="py-12 md:py-14 lg:py-16">
+    <div class="py-6 md:py-7 lg:py-8">
       <div class="page-container">
         <!-- 상단 영역 -->
         <div

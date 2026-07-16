@@ -103,7 +103,7 @@
               </div>
             </div>
 
-            <div class="flex min-h-0 flex-col justify-center p-5">
+            <div class="flex min-h-0 flex-col justify-start px-5 py-4">
               <span
                 v-if="place.category"
                 class="inline-flex w-fit rounded-full bg-[var(--color-surface)] px-3 py-1 text-xs font-semibold text-[var(--color-primary)]"
@@ -112,14 +112,14 @@
               </span>
 
               <h4
-                class="mt-3 line-clamp-2 text-xl font-semibold text-[var(--color-text)]"
+                class="mt-2 line-clamp-1 text-xl font-semibold text-[var(--color-text)]"
               >
                 {{ place.name }}
               </h4>
 
               <p
                 v-if="place.shortDescription"
-                class="mt-2 line-clamp-2 text-sm leading-6 text-[var(--color-text-muted)]"
+                class="mt-2 line-clamp-2 text-sm leading-5 text-[var(--color-text-muted)]"
               >
                 {{ place.shortDescription }}
               </p>
@@ -150,8 +150,13 @@ const props = defineProps({
 })
 
 const featuredPlaces = computed(() =>
-  props.places
+  [...props.places]
     .filter((place) => place?.id && place?.name)
+    .sort(
+      (a, b) =>
+        Number(b.viewCount ?? 0) -
+        Number(a.viewCount ?? 0),
+    )
     .slice(0, 3)
     .map((place) => ({
       ...place,
