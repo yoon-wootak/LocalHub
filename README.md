@@ -283,3 +283,8 @@ python -m unittest discover tests
 - 좋아요 중복 방지 방식 개선
 - OpenAI 연결 실패 시 fallback 답변 품질 개선
 - 데이터 출처·라이선스 문서화 강화
+
+--- 
+
+## 12. 발표 자료
+https://gamma.app/docs/-rpr0kepf3rnw66j
