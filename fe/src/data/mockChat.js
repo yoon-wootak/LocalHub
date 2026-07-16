@@ -24,11 +24,6 @@ export const chatSuggestions = [
     id: 'suggest-4',
     label: '지역 축제 정보',
     message: '구미에서 열리는 축제가 뭐가 있어?'
-  },
-  {
-    id: 'suggest-5',
-    label: '최근 커뮤니티 글 찾기',
-    message: '최근 커뮤니티 글을 보여줘'
   }
 ]
 
