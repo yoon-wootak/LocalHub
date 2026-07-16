@@ -177,3 +177,44 @@ export const verifyPostPassword = async (postId, password) => {
 
   return response.data
 }
+
+/**
+ * 게시글 좋아요 추가
+ * POST /api/posts/{id}/like
+ */
+export const likePost = async (postId) => {
+  if (!postId) {
+    throw new Error('게시글 ID가 필요합니다.')
+  }
+
+  const response = await http.post(
+    `/api/posts/${postId}/like`,
+  )
+
+  return {
+    liked: response.data.liked === true,
+    likeCount:
+      response.data.like_count ?? 0,
+  }
+}
+
+
+/**
+ * 게시글 좋아요 취소
+ * DELETE /api/posts/{id}/like
+ */
+export const unlikePost = async (postId) => {
+  if (!postId) {
+    throw new Error('게시글 ID가 필요합니다.')
+  }
+
+  const response = await http.delete(
+    `/api/posts/${postId}/like`,
+  )
+
+  return {
+    liked: response.data.liked === true,
+    likeCount:
+      response.data.like_count ?? 0,
+  }
+}

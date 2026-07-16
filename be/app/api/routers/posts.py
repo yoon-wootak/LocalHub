@@ -41,7 +41,10 @@ class PostOut(BaseModel):
     content: str
     category: str
     location_name: str
+
     view_count: int
+    like_count: int
+
     created_at: datetime
     updated_at: datetime
 
@@ -227,3 +230,64 @@ def verify_post_password(post_id: int, payload: PasswordPayload, db: Session = D
         raise HTTPException(status_code=403, detail="password mismatch")
 
     return {"ok": True}
+
+@router.post("/{post_id}/like")
+def like_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+):
+    post = (
+        db.query(Post)
+        .filter(Post.id == post_id)
+        .first()
+    )
+
+    if not post:
+        raise HTTPException(
+            status_code=404,
+            detail="post not found",
+        )
+
+    post.like_count += 1
+
+    db.commit()
+    db.refresh(post)
+
+    return {
+        "post_id": post.id,
+        "liked": True,
+        "like_count": post.like_count,
+    }
+
+
+
+@router.delete("/{post_id}/like")
+def unlike_post(
+    post_id: int,
+    db: Session = Depends(get_db),
+):
+    post = (
+        db.query(Post)
+        .filter(Post.id == post_id)
+        .first()
+    )
+
+    if not post:
+        raise HTTPException(
+            status_code=404,
+            detail="post not found",
+        )
+
+    post.like_count = max(
+        0,
+        post.like_count - 1,
+    )
+
+    db.commit()
+    db.refresh(post)
+
+    return {
+        "post_id": post.id,
+        "liked": False,
+        "like_count": post.like_count,
+    }
