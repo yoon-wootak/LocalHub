@@ -40,6 +40,13 @@ app.add_middleware(
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
 
+@app.get("/api/cors-check")
+def cors_check():
+    return {
+        "cors_version": "netlify-no-trailing-slash-v2",
+        "allowed_origin": "https://localhub3team.netlify.app",
+    }
+
 
 app.include_router(health_router)
 app.include_router(import_router)
