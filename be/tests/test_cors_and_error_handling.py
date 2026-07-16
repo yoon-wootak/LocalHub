@@ -43,21 +43,45 @@ class CorsAndErrorHandlingTest(unittest.TestCase):
         Base.metadata.create_all(bind=engine)
         self.client = TestClient(app)
 
-    def test_cors_preflight_allows_localhost(self):
+    def test_cors_preflight_allows_deployed_frontend(self):
+        frontend_origin = "https://localhub3team.netlify.app/"
+
         response = self.client.options(
             "/api/posts",
             headers={
-                "Origin": "http://localhost:5173",
+                "Origin": frontend_origin,
                 "Access-Control-Request-Method": "POST",
                 "Access-Control-Request-Headers": "content-type",
             },
         )
+
         self.assertEqual(response.status_code, 200)
         self.assertEqual(
             response.headers["access-control-allow-origin"],
-            "http://localhost:5173",
+            frontend_origin,
         )
-        self.assertIn("POST", response.headers["access-control-allow-methods"])
+        self.assertIn(
+            "POST",
+            response.headers["access-control-allow-methods"],
+        )
+
+    def test_cors_preflight_allows_local_frontend(self):
+        frontend_origin = "http://localhost:5173"
+
+        response = self.client.options(
+            "/api/posts",
+            headers={
+                "Origin": frontend_origin,
+                "Access-Control-Request-Method": "POST",
+                "Access-Control-Request-Headers": "content-type",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.headers["access-control-allow-origin"],
+            frontend_origin,
+        )
 
     def test_create_post_rejects_blank_required_fields_with_400(self):
         response = self.client.post(
