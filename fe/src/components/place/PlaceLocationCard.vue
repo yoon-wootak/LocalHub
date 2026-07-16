@@ -28,14 +28,12 @@
           길찾기
         </a>
 
-        <button class="rounded-lg border px-4 py-3 text-sm text-[var(--color-text)] bg-white">
-          공유 위치
-        </button>
+        
       </div>
     </div>
 
     <RouterLink
-      to="/"
+      to="/places"
       class="block rounded-lg border border-[var(--color-border)] bg-white px-4 py-3 text-center text-[var(--color-text)] font-semibold shadow-sm"
     >
       목록으로 돌아가기
