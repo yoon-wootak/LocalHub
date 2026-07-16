@@ -218,3 +218,17 @@ export const unlikePost = async (postId) => {
       response.data.like_count ?? 0,
   }
 }
+
+/**
+ * 인기 게시글 조회
+ * GET /api/posts/popular
+ */
+export const getPopularPosts = async (limit = 4) => {
+  const response = await http.get('/api/posts/popular', {
+    params: {
+      limit
+    }
+  })
+
+  return mapPosts(response.data)
+}

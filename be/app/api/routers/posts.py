@@ -83,6 +83,8 @@ def resolve_place_id(
     return None
 
 
+
+
 @router.get("", response_model=PostListResponse)
 def list_posts(
     keyword: Optional[str] = None,
@@ -119,6 +121,20 @@ def list_posts(
 
     return {"items": posts, "total": total, "page": page, "size": size}
 
+
+@router.get("/popular", response_model=list[PostOut])
+def popular_posts(
+    limit: int = 4,
+    db: Session = Depends(get_db),
+):
+    posts = (
+        db.query(Post)
+        .order_by(Post.view_count.desc(), Post.id.desc())
+        .limit(limit)
+        .all()
+    )
+
+    return posts
 
 @router.get("/{post_id}", response_model=PostOut)
 def get_post(post_id: int, db: Session = Depends(get_db)):
