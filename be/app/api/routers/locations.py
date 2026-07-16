@@ -238,7 +238,7 @@ def list_locations(
 
     places = (
         query
-        .order_by(Place.id)
+        .order_by(func.random())
         .offset(offset)
         .limit(limit)
         .all()
