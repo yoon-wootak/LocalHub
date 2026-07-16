@@ -15,5 +15,11 @@ class Post(Base):
     place_id = Column(Integer, ForeignKey("places.id"), nullable=True, index=True)
     password = Column(String(100), nullable=False)
     view_count = Column(Integer, nullable=False, default=0, server_default="0")
+    like_count = Column(
+    Integer,
+    nullable=False,
+    default=0,
+    server_default="0",
+)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), nullable=False, server_default=func.now())

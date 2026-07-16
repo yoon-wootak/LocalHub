@@ -76,29 +76,49 @@
             </div>
 
             <!-- 메타 정보 -->
-            <div
-              class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]"
-            >
-              <span>
-                작성일: {{ formatDateTime(post.createdAt) }}
-              </span>
+<div
+  class="mt-6 flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-[var(--color-text-muted)]"
+>
+  <span>
+    작성일: {{ formatDateTime(post.createdAt) }}
+  </span>
 
-              <span v-if="post.updatedAt">
-                수정됨: {{ formatDateTime(post.updatedAt) }}
-              </span>
+  <span v-if="post.updatedAt">
+    수정됨: {{ formatDateTime(post.updatedAt) }}
+  </span>
 
-              <span>
-                조회수: {{ post.viewCount ?? 0 }}
-              </span>
 
-              <span
-                v-if="post.locationName"
-                class="inline-flex items-center gap-1"
-              >
-                <span aria-hidden="true">📍</span>
-                {{ post.locationName }}
-              </span>
-            </div>
+  <span>
+    조회수: {{ post.viewCount ?? 0 }}
+  </span>
+
+
+  <!-- 좋아요 -->
+  <button
+    type="button"
+    :disabled="likeLoading"
+    class="inline-flex items-center gap-1 transition hover:text-[var(--color-primary)]"
+    @click="toggleLike"
+  >
+    <span>
+      {{ liked ? '❤️' : '🤍' }}
+    </span>
+
+    <span>
+      {{ post.likeCount ?? 0 }}
+    </span>
+  </button>
+
+
+  <span
+    v-if="post.locationName"
+    class="inline-flex items-center gap-1"
+  >
+    <span aria-hidden="true">📍</span>
+    {{ post.locationName }}
+  </span>
+
+</div>
 
             <!-- 구분선 -->
             <div class="my-8 border-t border-[var(--color-border)]"></div>
@@ -181,107 +201,401 @@ import {
 import { useRoute, useRouter } from 'vue-router'
 
 import PasswordModal from '@/components/post/PasswordModal.vue'
+
 import {
   getPost,
   deletePost,
   verifyPostPassword,
+  likePost,
+  unlikePost,
 } from '@/api/postApi'
+
 
 const route = useRoute()
 const router = useRouter()
 
-const postId = computed(() => String(route.params.id))
+
+const postId = computed(() =>
+  String(route.params.id)
+)
+
 const post = ref(null)
+
 
 const menuRef = ref(null)
 const isMenuOpen = ref(false)
 
+
 const showEditPasswordModal = ref(false)
 const showDeletePasswordModal = ref(false)
+
 
 const editLoading = ref(false)
 const editError = ref('')
 
+
 const deleteLoading = ref(false)
 const deleteError = ref('')
 
-const loadPost = async () => {
+
+/*
+ * 좋아요 상태
+ */
+const liked = ref(false)
+const likeLoading = ref(false)
+
+
+
+/**
+ * 게시글 좋아요 저장 키
+ */
+const getLikeStorageKey = (id) => {
+  return `localhub:post-like:${id}`
+}
+
+
+
+/**
+ * 좋아요 상태 읽기
+ */
+const readLikedState = (id) => {
+  return (
+    localStorage.getItem(
+      getLikeStorageKey(id),
+    ) === 'true'
+  )
+}
+
+
+
+/**
+ * 좋아요 상태 저장
+ */
+const saveLikedState = (
+  id,
+  isLiked,
+) => {
+
+  const key =
+    getLikeStorageKey(id)
+
+
+  if (isLiked) {
+
+    localStorage.setItem(
+      key,
+      'true',
+    )
+
+    return
+  }
+
+
+  localStorage.removeItem(key)
+}
+
+
+
+/**
+ * 게시글 좋아요 토글
+ */
+const toggleLike = async () => {
+
+  if (
+    !post.value ||
+    likeLoading.value
+  ) {
+    return
+  }
+
+
+  const id = post.value.id
+
+
+  const previousLiked =
+    liked.value
+
+
+  const previousCount =
+    post.value.likeCount ?? 0
+
+
+
+  likeLoading.value = true
+
+
+  /*
+   * 낙관적 업데이트
+   */
+  liked.value =
+    !previousLiked
+
+
+  post.value.likeCount =
+    Math.max(
+      0,
+      previousCount +
+        (liked.value ? 1 : -1),
+    )
+
+
+
   try {
-    post.value = await getPost(postId.value)
-  } catch (error) {
-    console.error(error)
+
+    const result = liked.value
+      ? await likePost(id)
+      : await unlikePost(id)
+
+
+    liked.value =
+      result.liked
+
+
+    post.value.likeCount =
+      result.likeCount
+
+
+    saveLikedState(
+      id,
+      result.liked,
+    )
+
+
+  } catch(error) {
+
+    console.error(
+      '좋아요 처리 실패:',
+      error,
+    )
+
+
+    /*
+     * 실패 시 원상복구
+     */
+    liked.value =
+      previousLiked
+
+
+    post.value.likeCount =
+      previousCount
+
+
+  } finally {
+
+    likeLoading.value = false
+
   }
 }
 
-const formatDateTime = (dateString) => {
-  if (!dateString) return '-'
-  return new Date(dateString).toLocaleString('ko-KR')
+
+
+/**
+ * 게시글 조회
+ */
+const loadPost = async () => {
+
+  try {
+
+    post.value =
+      await getPost(postId.value)
+
+
+    liked.value =
+      readLikedState(
+        post.value.id,
+      )
+
+
+  } catch(error) {
+
+    console.error(error)
+
+  }
 }
+
+
+
+const formatDateTime = (
+  dateString,
+) => {
+
+  if (!dateString) {
+    return '-'
+  }
+
+
+  return new Date(
+    dateString,
+  ).toLocaleString('ko-KR')
+
+}
+
+
+
 
 const toggleMenu = () => {
-  isMenuOpen.value = !isMenuOpen.value
+
+  isMenuOpen.value =
+    !isMenuOpen.value
+
 }
+
+
 
 const closeMenu = () => {
+
   isMenuOpen.value = false
+
 }
 
-const handleOutsideClick = (event) => {
-  if (menuRef.value && !menuRef.value.contains(event.target)) {
+
+
+const handleOutsideClick = (
+  event,
+) => {
+
+  if (
+    menuRef.value &&
+    !menuRef.value.contains(
+      event.target,
+    )
+  ) {
+
     closeMenu()
+
   }
+
 }
+
+
 
 const openEditModal = () => {
+
   closeMenu()
+
   editError.value = ''
-  showEditPasswordModal.value = true
+
+  showEditPasswordModal.value =
+    true
+
 }
+
+
 
 const closeEditModal = () => {
-  showEditPasswordModal.value = false
+
+  showEditPasswordModal.value =
+    false
+
 }
+
+
 
 const openDeleteModal = () => {
+
   closeMenu()
+
   deleteError.value = ''
-  showDeletePasswordModal.value = true
+
+  showDeletePasswordModal.value =
+    true
+
 }
+
+
 
 const closeDeleteModal = () => {
-  showDeletePasswordModal.value = false
+
+  showDeletePasswordModal.value =
+    false
+
 }
 
-const handleEditPassword = async (password) => {
+
+
+
+const handleEditPassword = async (
+  password,
+) => {
+
   try {
-    await verifyPostPassword(postId.value, password)
+
+    await verifyPostPassword(
+      postId.value,
+      password,
+    )
+
 
     sessionStorage.setItem(
       `localhub-post-edit-${postId.value}`,
       'verified',
     )
 
-    router.push(`/posts/${postId.value}/edit`)
-  } catch (error) {
-    editError.value = error.message
+
+    router.push(
+      `/posts/${postId.value}/edit`,
+    )
+
+
+  } catch(error) {
+
+    editError.value =
+      error.message
+
   }
+
 }
 
-const handleDeletePassword = async (password) => {
+
+
+
+const handleDeletePassword = async (
+  password,
+) => {
+
   try {
-    await deletePost(postId.value, password)
+
+    await deletePost(
+      postId.value,
+      password,
+    )
+
+
     router.push('/posts')
-  } catch (error) {
-    deleteError.value = error.message
+
+
+  } catch(error) {
+
+    deleteError.value =
+      error.message
+
   }
+
 }
+
+
 
 onMounted(() => {
+
   loadPost()
-  document.addEventListener('click', handleOutsideClick)
+
+
+  document.addEventListener(
+    'click',
+    handleOutsideClick,
+  )
+
 })
 
+
+
 onBeforeUnmount(() => {
-  document.removeEventListener('click', handleOutsideClick)
+
+  document.removeEventListener(
+    'click',
+    handleOutsideClick,
+  )
+
 })
+
 </script>

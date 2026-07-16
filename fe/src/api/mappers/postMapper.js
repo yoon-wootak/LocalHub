@@ -37,16 +37,20 @@ export const mapPost = (rawPost) => {
 
   const post = transformKeys(rawPost)
 
-  return {
-    id: post.id ? Number(post.id) : null,
-    title: post.title || '',
-    content: post.content || '',
-    category: post.category || '',
-    createdAt: post.createdAt || new Date().toISOString(),
-    updatedAt: post.updatedAt || null,
-    viewCount: post.viewCount ? Number(post.viewCount) : 0,
-    locationName: post.locationName || null
-  }
+return {
+  id: post.id ? Number(post.id) : null,
+  title: post.title || '',
+  content: post.content || '',
+  category: post.category || '',
+
+  createdAt: post.createdAt || new Date().toISOString(),
+  updatedAt: post.updatedAt || null,
+
+  viewCount: Number(post.viewCount ?? 0),
+  likeCount: Number(post.likeCount ?? 0),
+
+  locationName: post.locationName || null
+}
 }
 
 export const mapPosts = (rawPosts) => {
